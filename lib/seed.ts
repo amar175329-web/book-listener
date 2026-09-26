@@ -1,17 +1,23 @@
-import { getDb } from './db';
+import { getDb, ensureDbInitialized } from './db';
 
-export function runSeed() {
+let memorySeeded = false;
+
+export async function runSeed() {
+  if (memorySeeded) return;
+  await ensureDbInitialized();
   const db = getDb();
   
   // Check if books are already seeded with expanded catalog
-  const existingCount = db.prepare('SELECT COUNT(*) as count FROM books').get() as { count: number };
+  const existingCount = await db.prepare('SELECT COUNT(*) as count FROM books').get() as { count: number };
   if (existingCount && existingCount.count >= 11) {
+    memorySeeded = true;
     return;
   }
 
-  console.log('[Seed] Seeding curated personal-growth books, summaries, and audio tracks...');
+  console.log('[Seed] Seeding curated personal-growth books, summaries, and audio tracks to Turso...');
+  const batchStatements: { sql: string; args: any[] }[] = [];
 
-  const insertBook = db.prepare(`
+  const bookSql = `
     INSERT OR REPLACE INTO books (
       id, slug, title, author, description, cover_url, published_year,
       themes_json, problem_tags_json, source_flags_json, spotify_query,
@@ -20,20 +26,20 @@ export function runSeed() {
     ) VALUES (
       ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
     )
-  `);
+  `;
 
-  const insertSummary = db.prepare(`
+  const summarySql = `
     INSERT OR REPLACE INTO original_summaries (
       id, book_id, title, executive_overview, core_problem_solved,
       key_lessons_json, audio_tts_url, audio_duration_seconds, attribution_notice
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
+  `;
 
-  const insertTrack = db.prepare(`
+  const trackSql = `
     INSERT OR REPLACE INTO audio_tracks (
       id, book_id, track_index, title, duration_seconds, stream_url, source
     ) VALUES (?, ?, ?, ?, ?, ?, ?)
-  `);
+  `;
 
   const booksData = [
     {
@@ -588,54 +594,68 @@ export function runSeed() {
   ];
 
   for (const b of booksData) {
-    insertBook.run(
-      b.id,
-      b.slug,
-      b.title,
-      b.author,
-      b.description,
-      b.coverUrl,
-      b.publishedYear,
-      JSON.stringify(b.themes),
-      JSON.stringify(b.problemTags),
-      JSON.stringify(b.sourceFlags),
-      b.spotifyQuery,
-      b.gutenbergId,
-      b.standardEbooksSlug,
-      b.librivoxIdentifier,
-      b.openLibraryKey,
-      b.googleBooksId,
-      b.metadataSource
-    );
+    batchStatements.push({
+      sql: bookSql,
+      args: [
+        b.id,
+        b.slug,
+        b.title,
+        b.author,
+        b.description,
+        b.coverUrl,
+        b.publishedYear,
+        JSON.stringify(b.themes),
+        JSON.stringify(b.problemTags),
+        JSON.stringify(b.sourceFlags),
+        b.spotifyQuery,
+        b.gutenbergId,
+        b.standardEbooksSlug,
+        b.librivoxIdentifier,
+        b.openLibraryKey,
+        b.googleBooksId,
+        b.metadataSource
+      ]
+    });
 
     if (b.summary) {
-      insertSummary.run(
-        `sum_${b.id}`,
-        b.id,
-        b.summary.title,
-        b.summary.executiveOverview,
-        b.summary.coreProblemSolved,
-        JSON.stringify(b.summary.lessons),
-        null,
-        null,
-        'Book Listener Original Summary — Transformative analysis & key takeaways. Not the full book.'
-      );
+      batchStatements.push({
+        sql: summarySql,
+        args: [
+          `sum_${b.id}`,
+          b.id,
+          b.summary.title,
+          b.summary.executiveOverview,
+          b.summary.coreProblemSolved,
+          JSON.stringify(b.summary.lessons),
+          null,
+          null,
+          'Book Listener Original Summary — Transformative analysis & key takeaways. Not the full book.'
+        ]
+      });
     }
 
     if (b.tracks && b.tracks.length > 0) {
       for (const tr of b.tracks) {
-        insertTrack.run(
-          `trk_${b.id}_${tr.index}`,
-          b.id,
-          tr.index,
-          tr.title,
-          tr.duration,
-          tr.url,
-          'librivox'
-        );
+        batchStatements.push({
+          sql: trackSql,
+          args: [
+            `trk_${b.id}_${tr.index}`,
+            b.id,
+            tr.index,
+            tr.title,
+            tr.duration,
+            tr.url,
+            'librivox'
+          ]
+        });
       }
     }
   }
 
-  console.log(`[Seed] Successfully seeded ${booksData.length} books with complete 4-state availability metadata.`);
+  if (batchStatements.length > 0) {
+    await db.batch(batchStatements);
+  }
+  memorySeeded = true;
+
+  console.log(`[Seed] Successfully seeded ${booksData.length} books with complete 4-state availability metadata to Turso.`);
 }

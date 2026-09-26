@@ -6,14 +6,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   try {
     const { id } = await params;
     const db = getDb();
-    const row = db.prepare('SELECT * FROM books WHERE id = ? OR slug = ?').get(id, id) as any;
+    const row = await db.prepare('SELECT * FROM books WHERE id = ? OR slug = ?').get(id, id) as any;
 
     if (!row) {
       return NextResponse.json({ error: 'Book not found' }, { status: 404 });
     }
 
     // 1. Check existing tracks in DB
-    const existing = db.prepare(`
+    const existing = await db.prepare(`
       SELECT * FROM audio_tracks WHERE book_id = ? ORDER BY track_index ASC
     `).all(row.id) as any[];
 
@@ -60,7 +60,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
           const duration = file.length ? Math.round(parseFloat(file.length)) : null;
           const title = file.title || file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
 
-          insertTrack.run(trackId, row.id, index, title, duration, streamUrl);
+          await insertTrack.run(trackId, row.id, index, title, duration, streamUrl);
           createdTracks.push({
             id: trackId,
             bookId: row.id,

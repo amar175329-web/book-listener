@@ -31,14 +31,14 @@ export async function GET(req: Request) {
   try {
     const authHeader = req.headers.get('authorization');
     const token = authHeader?.replace(/^Bearer\s+/i, '');
-    const user = getUserFromToken(token);
+    const user = await getUserFromToken(token);
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized. Sign in to view your library.' }, { status: 401 });
     }
 
     const db = getDb();
-    const rows = db.prepare(`
+    const rows = await db.prepare(`
       SELECT 
         ul.id as lib_id,
         ul.user_id,

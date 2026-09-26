@@ -223,6 +223,6 @@ describe('Comprehensive End-to-End API Routes Verification', () => {
 
     // Clean up test user
     const db = getDb();
-    db.prepare('DELETE FROM users WHERE id = ?').run(userId);
+    await db.prepare('DELETE FROM users WHERE id = ?').run(userId);
   });
 });

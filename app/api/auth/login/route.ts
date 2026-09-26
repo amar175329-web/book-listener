@@ -6,7 +6,7 @@ import { checkRateLimit } from '@/lib/security';
 
 export async function POST(req: Request) {
   try {
-    runSeed();
+    await runSeed();
 
     const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
     const rateLimit = checkRateLimit(`login_${ip}`, 10, 60000);
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     }
 
     const db = getDb();
-    const userRow = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase().trim()) as any;
+    const userRow = await db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase().trim()) as any;
 
     if (!userRow) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     const token = generateToken(userRow.id);
 
     // Fetch user themes
-    const userThemes = db.prepare('SELECT theme_id FROM user_themes WHERE user_id = ?').all(userRow.id) as any[];
+    const userThemes = await db.prepare('SELECT theme_id FROM user_themes WHERE user_id = ?').all(userRow.id) as any[];
 
     const user = {
       id: userRow.id,

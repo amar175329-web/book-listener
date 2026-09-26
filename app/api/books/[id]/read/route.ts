@@ -2,14 +2,15 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
-const CACHE_DIR = path.join(process.cwd(), 'data', 'gutenberg_cache');
+const CACHE_DIR = path.join(os.tmpdir(), 'gutenberg_cache');
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const db = getDb();
-    const row = db.prepare('SELECT * FROM books WHERE id = ? OR slug = ?').get(id, id) as any;
+    const row = await db.prepare('SELECT * FROM books WHERE id = ? OR slug = ?').get(id, id) as any;
 
     if (!row) {
       return NextResponse.json({ error: 'Book not found' }, { status: 404 });
@@ -23,9 +24,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     }
 
     const gutenbergId = row.gutenberg_id;
-    if (!fs.existsSync(CACHE_DIR)) {
-      fs.mkdirSync(CACHE_DIR, { recursive: true });
-    }
+    try {
+      if (!fs.existsSync(CACHE_DIR)) {
+        fs.mkdirSync(CACHE_DIR, { recursive: true });
+      }
+    } catch {}
 
     const cacheFilePath = path.join(CACHE_DIR, `${gutenbergId}.txt`);
     let rawText = '';
@@ -44,7 +47,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       }
 
       rawText = await res.text();
-      fs.writeFileSync(cacheFilePath, rawText, 'utf-8');
+      try {
+        fs.writeFileSync(cacheFilePath, rawText, 'utf-8');
+      } catch {}
     }
 
     // Strip Gutenberg header and footer markers for clean reading

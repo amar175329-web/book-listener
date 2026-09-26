@@ -32,7 +32,7 @@ function parseBookRow(row: any): Book {
 
 export async function GET(req: Request) {
   try {
-    runSeed();
+    await runSeed();
     const { searchParams } = new URL(req.url);
     const query = searchParams.get('q') || '';
     const themeFilter = searchParams.get('theme') || '';
@@ -41,17 +41,17 @@ export async function GET(req: Request) {
     // Check optional authenticated user for personalization
     const authHeader = req.headers.get('authorization');
     const token = authHeader?.replace(/^Bearer\s+/i, '');
-    const user = getUserFromToken(token);
+    const user = await getUserFromToken(token);
 
     const db = getDb();
     let userThemes: string[] = [];
     if (user) {
-      const rows = db.prepare('SELECT theme_id FROM user_themes WHERE user_id = ?').all(user.id) as any[];
+      const rows = await db.prepare('SELECT theme_id FROM user_themes WHERE user_id = ?').all(user.id) as any[];
       userThemes = rows.map((r) => r.theme_id);
     }
 
     // Fetch all books
-    const rows = db.prepare('SELECT * FROM books').all() as any[];
+    const rows = await db.prepare('SELECT * FROM books').all() as any[];
     let allBooks = rows.map(parseBookRow);
 
     // Apply problem search engine
@@ -62,7 +62,7 @@ export async function GET(req: Request) {
       try {
         const externalBooks = await searchExternalBooks(query);
         if (externalBooks.length > 0) {
-          const updatedRows = db.prepare('SELECT * FROM books').all() as any[];
+          const updatedRows = await db.prepare('SELECT * FROM books').all() as any[];
           allBooks = updatedRows.map(parseBookRow);
           searchResults = searchBooksByProblem(query, allBooks, userThemes);
         }

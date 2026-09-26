@@ -7,13 +7,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   try {
     const { id } = await params;
     const db = getDb();
-    const row = db.prepare('SELECT * FROM books WHERE id = ? OR slug = ?').get(id, id) as any;
+    const row = await db.prepare('SELECT * FROM books WHERE id = ? OR slug = ?').get(id, id) as any;
 
     if (!row) {
       return NextResponse.json({ error: 'Book not found' }, { status: 404 });
     }
 
-    const summaryRow = db.prepare('SELECT * FROM original_summaries WHERE book_id = ?').get(row.id) as any;
+    const summaryRow = await db.prepare('SELECT * FROM original_summaries WHERE book_id = ?').get(row.id) as any;
 
     let summary: OriginalSummary;
     if (summaryRow) {

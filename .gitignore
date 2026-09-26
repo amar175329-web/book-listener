@@ -9,14 +9,16 @@ out/
 build/
 dist/
 
-# SQLite journal & ephemeral cache files
-data/*.sqlite-shm
-data/*.sqlite-wal
+# SQLite database files & cache
+data/*.sqlite*
 data/gutenberg_cache/
+data/
 
 # Environment files
 .env*.local
 .env
+.env.*
+!.env.example
 
 # Debug logs
 npm-debug.log*

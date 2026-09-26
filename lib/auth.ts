@@ -45,13 +45,13 @@ export function verifyToken(token: string): { userId: string } | null {
   }
 }
 
-export function getUserFromToken(token: string | null | undefined): User | null {
+export async function getUserFromToken(token: string | null | undefined): Promise<User | null> {
   if (!token) return null;
   const parsed = verifyToken(token);
   if (!parsed) return null;
 
   const db = getDb();
-  const row = db.prepare('SELECT * FROM users WHERE id = ?').get(parsed.userId) as any;
+  const row = await db.prepare('SELECT * FROM users WHERE id = ?').get(parsed.userId) as any;
   if (!row) return null;
 
   return {

@@ -29,12 +29,12 @@ function parseBookRow(row: any): Book {
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    runSeed();
+    await runSeed();
     const { id } = await params;
     const db = getDb();
     
     // Look up by id or slug
-    const row = db.prepare('SELECT * FROM books WHERE id = ? OR slug = ?').get(id, id) as any;
+    const row = await db.prepare('SELECT * FROM books WHERE id = ? OR slug = ?').get(id, id) as any;
     if (!row) {
       return NextResponse.json({ error: 'Book not found' }, { status: 404 });
     }

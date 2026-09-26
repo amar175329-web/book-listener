@@ -7,7 +7,7 @@ import { checkRateLimit } from '@/lib/security';
 
 export async function POST(req: Request) {
   try {
-    runSeed();
+    await runSeed();
 
     const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
     const rateLimit = checkRateLimit(`register_${ip}`, 10, 60000);
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     }
 
     const db = getDb();
-    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase().trim());
+    const existing = await db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase().trim());
     if (existing) {
       return NextResponse.json({ error: 'User with this email already exists' }, { status: 409 });
     }
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     const userId = `usr_${crypto.randomUUID()}`;
     const passwordHash = hashPassword(password);
 
-    db.prepare(`
+    await db.prepare(`
       INSERT INTO users (id, email, password_hash, name, language_preference, onboarding_completed)
       VALUES (?, ?, ?, ?, ?, 0)
     `).run(userId, email.toLowerCase().trim(), passwordHash, name.trim(), languagePreference);

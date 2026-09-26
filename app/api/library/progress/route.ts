@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   try {
     const authHeader = req.headers.get('authorization');
     const token = authHeader?.replace(/^Bearer\s+/i, '');
-    const user = getUserFromToken(token);
+    const user = await getUserFromToken(token);
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     }
 
     // Upsert user_library
-    db.prepare(`
+    await db.prepare(`
       INSERT INTO user_library (
         id, user_id, book_id, status, progress_pct, current_position_seconds,
         current_chapter_index, last_format, liked, last_accessed_at
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
     // Record consumption history session if seconds listended > 0
     if (secondsListened > 0) {
       const historyId = `hist_${crypto.randomUUID()}`;
-      db.prepare(`
+      await db.prepare(`
         INSERT INTO consumption_history (id, user_id, book_id, format, chapter_index, chapter_title, seconds_consumed)
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `).run(historyId, user.id, bookId, format, currentChapterIndex, chapterTitle || null, secondsListened);

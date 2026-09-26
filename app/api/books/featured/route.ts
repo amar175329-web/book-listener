@@ -29,9 +29,9 @@ function parseBookRow(row: any): Book {
 
 export async function GET() {
   try {
-    runSeed();
+    await runSeed();
     const db = getDb();
-    const rows = db.prepare('SELECT * FROM books').all() as any[];
+    const rows = await db.prepare('SELECT * FROM books').all() as any[];
     const allBooks = rows.map(parseBookRow).map((book) => ({
       ...book,
       availability: resolveAvailability(book)

@@ -22,8 +22,8 @@ interface GenerateSummaryParams {
 export async function getOrCreateSummary(params: GenerateSummaryParams): Promise<OriginalSummary> {
   const db = getDb();
 
-  // 1. Check SQLite cache first
-  const existing = db.prepare('SELECT * FROM original_summaries WHERE book_id = ?').get(params.bookId) as any;
+  // 1. Check cache first
+  const existing = await db.prepare('SELECT * FROM original_summaries WHERE book_id = ?').get(params.bookId) as any;
   if (existing) {
     return {
       id: existing.id,
@@ -42,7 +42,7 @@ export async function getOrCreateSummary(params: GenerateSummaryParams): Promise
   const summary = await synthesizeTransformativeSummary(params);
 
   // 3. Persist to database
-  db.prepare(`
+  await db.prepare(`
     INSERT OR REPLACE INTO original_summaries (
       id, book_id, title, executive_overview, core_problem_solved,
       key_lessons_json, audio_tts_url, audio_duration_seconds, attribution_notice

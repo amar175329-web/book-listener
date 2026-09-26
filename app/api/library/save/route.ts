@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   try {
     const authHeader = req.headers.get('authorization');
     const token = authHeader?.replace(/^Bearer\s+/i, '');
-    const user = getUserFromToken(token);
+    const user = await getUserFromToken(token);
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized. Sign in to save books to your library.' }, { status: 401 });
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     const db = getDb();
     const libId = `lib_${crypto.randomUUID()}`;
 
-    db.prepare(`
+    await db.prepare(`
       INSERT INTO user_library (id, user_id, book_id, status, rating, notes, liked, last_accessed_at)
       VALUES (?, ?, ?, ?, ?, ?, COALESCE(?, 0), CURRENT_TIMESTAMP)
       ON CONFLICT(user_id, book_id) DO UPDATE SET

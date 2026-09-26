@@ -51,7 +51,7 @@ export async function searchExternalBooks(query: string): Promise<Book[]> {
       const bookId = `ol_${doc.key.replace(/[^a-zA-Z0-9]/g, '_')}`;
 
       // Check if already in database
-      const existing = db.prepare('SELECT * FROM books WHERE id = ? OR slug = ?').get(bookId, slug) as any;
+      const existing = await db.prepare('SELECT * FROM books WHERE id = ? OR slug = ?').get(bookId, slug) as any;
       if (existing) {
         discoveredBooks.push({
           id: existing.id,
@@ -110,8 +110,8 @@ export async function searchExternalBooks(query: string): Promise<Book[]> {
         metadataSource: 'open_library'
       };
 
-      // Persist to SQLite catalog
-      db.prepare(`
+      // Persist to Turso catalog
+      await db.prepare(`
         INSERT OR IGNORE INTO books (
           id, slug, title, author, description, cover_url, published_year,
           themes_json, problem_tags_json, source_flags_json, spotify_query,
@@ -201,7 +201,7 @@ export async function searchGoogleBooks(query: string): Promise<Book[]> {
       const slug = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${author.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`.slice(0, 96);
       const bookId = `gb_${item.id.replace(/[^a-zA-Z0-9]/g, '_')}`;
 
-      const existing = db.prepare('SELECT * FROM books WHERE id = ? OR slug = ?').get(bookId, slug) as any;
+      const existing = await db.prepare('SELECT * FROM books WHERE id = ? OR slug = ?').get(bookId, slug) as any;
       if (existing) {
         books.push({
           id: existing.id,
@@ -260,7 +260,7 @@ export async function searchGoogleBooks(query: string): Promise<Book[]> {
         metadataSource: 'google_books'
       };
 
-      db.prepare(`
+      await db.prepare(`
         INSERT OR IGNORE INTO books (
           id, slug, title, author, description, cover_url, published_year,
           themes_json, problem_tags_json, source_flags_json, spotify_query,

@@ -5,17 +5,17 @@ import { runSeed } from '@/lib/seed';
 
 export async function GET(req: Request) {
   try {
-    runSeed();
+    await runSeed();
     const authHeader = req.headers.get('authorization');
     const token = authHeader?.replace(/^Bearer\s+/i, '');
 
-    const user = getUserFromToken(token);
+    const user = await getUserFromToken(token);
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const db = getDb();
-    const userThemes = db.prepare('SELECT theme_id FROM user_themes WHERE user_id = ?').all(user.id) as any[];
+    const userThemes = await db.prepare('SELECT theme_id FROM user_themes WHERE user_id = ?').all(user.id) as any[];
 
     return NextResponse.json({
       user: {
