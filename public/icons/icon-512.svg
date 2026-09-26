@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1c1917" />
+      <stop offset="100%" stop-color="#0c0a09" />
+    </linearGradient>
+    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+  </defs>
+  <!-- Background Rounded Rect -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="none" stroke="#292524" stroke-width="4" />
+  
+  <!-- Stylized Book & Headphones Icon -->
+  <g transform="translate(106, 116)">
+    <!-- Headphones Arc -->
+    <path d="M 30 160 A 120 120 0 0 1 270 160" fill="none" stroke="url(#amberGrad)" stroke-width="24" stroke-linecap="round" />
+    <!-- Ear Cups -->
+    <rect x="14" y="150" width="32" height="60" rx="16" fill="url(#amberGrad)" />
+    <rect x="254" y="150" width="32" height="60" rx="16" fill="url(#amberGrad)" />
+    
+    <!-- Open Book Pages -->
+    <path d="M 150 180 C 110 160 50 165 40 220 L 40 250 C 60 210 110 205 150 225 C 190 205 240 210 260 250 L 260 220 C 250 165 190 160 150 180 Z" fill="url(#amberGrad)" opacity="0.95" />
+    <line x1="150" y1="180" x2="150" y2="250" stroke="#1c1917" stroke-width="4" />
+  </g>
+</svg>

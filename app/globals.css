@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-canvas: #FBF9F5;
+    --bg-surface: #FFFFFF;
+    --bg-surface-elevated: #F4EFE6;
+    --text-primary: #1A1917;
+    --text-secondary: #5C5852;
+    --border-subtle: #E8E2D7;
+    --accent-amber: #B45309;
+  }
+
+  .dark {
+    --bg-canvas: #0E1117;
+    --bg-surface: #161B22;
+    --bg-surface-elevated: #21262D;
+    --text-primary: #F0F6FC;
+    --text-secondary: #8B949E;
+    --border-subtle: #30363D;
+    --accent-amber: #F59E0B;
+  }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Custom scrollbars for clean literary feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+/* Reader Typography Styles */
+.reader-content {
+  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+}
+.reader-content p {
+  margin-bottom: 1.5rem;
+}
